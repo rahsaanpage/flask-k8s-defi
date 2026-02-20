@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DefiSwap | Decentralized Exchange</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0d0d1a 0%, #1a0a2e 50%, #0d1a2e 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #fff;
+        }
+
+        /* Animated background */
+        .bg-animation {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: radial-gradient(circle at 20% 80%, rgba(120, 0, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 20%, rgba(0, 212, 255, 0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 40% 40%, rgba(255, 0, 128, 0.1) 0%, transparent 40%);
+            animation: bgMove 20s ease-in-out infinite;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            50% { transform: translate(-5%, -5%) rotate(5deg); }
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            padding: 0.625rem 1.25rem;
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .connect-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #7b2ff7, #f107a3);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(123, 47, 247, 0.5);
+        }
+
+        .connect-btn.connected {
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        /* Main Content */
+        .main {
+            display: flex;
+            justify-content: center;
+            padding: 3rem 1rem;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        /* Swap Card */
+        .swap-card {
+            width: 100%;
+            max-width: 480px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 24px;
+            padding: 1.5rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .settings-btn {
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 10px;
+            padding: 0.5rem;
+            color: rgba(255, 255, 255, 0.7);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .settings-btn:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+        }
+
+        /* Token Input */
+        .token-input-container {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 16px;
+            padding: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .token-input-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .token-input-row {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .token-amount {
+            flex: 1;
+            background: none;
+            border: none;
+            font-size: 2rem;
+            font-weight: 500;
+            color: #fff;
+            outline: none;
+            width: 100%;
+        }
+
+        .token-amount::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .token-select {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .token-select:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .token-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.75rem;
+        }
+
+        .token-symbol {
+            font-weight: 600;
+        }
+
+        /* Swap Arrow */
+        .swap-arrow-container {
+            display: flex;
+            justify-content: center;
+            margin: -0.75rem 0;
+            position: relative;
+            z-index: 2;
+        }
+
+        .swap-arrow {
+            background: #1a1a2e;
+            border: 4px solid #0d0d1a;
+            border-radius: 12px;
+            padding: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .swap-arrow:hover {
+            transform: rotate(180deg);
+            color: #00d4ff;
+        }
+
+        /* Price Info */
+        .price-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            margin-top: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 12px;
+            font-size: 0.875rem;
+        }
+
+        .price-info-label {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .price-info-value {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        /* Swap Button */
+        .swap-btn {
+            width: 100%;
+            padding: 1.125rem;
+            margin-top: 1rem;
+            background: linear-gradient(135deg, #7b2ff7, #00d4ff);
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            font-size: 1.125rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .swap-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px -10px rgba(123, 47, 247, 0.5);
+        }
+
+        .swap-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .swap-btn.loading {
+            position: relative;
+            color: transparent;
+        }
+
+        .swap-btn.loading::after {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            top: 50%;
+            left: 50%;
+            margin: -12px 0 0 -12px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Stats Panel */
+        .stats-panel {
+            width: 100%;
+            max-width: 380px;
+        }
+
+        .stats-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            backdrop-filter: blur(20px);
+        }
+
+        .stats-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stats-title {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.7rem;
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+            padding: 0.25rem 0.5rem;
+            border-radius: 20px;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: livePulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes livePulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .stat-row:last-child {
+            border-bottom: none;
+        }
+
+        .stat-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .stat-value {
+            font-weight: 600;
+            transition: color 0.3s;
+        }
+
+        .stat-value.positive {
+            color: #00ff88;
+        }
+
+        .stat-value.negative {
+            color: #ff4757;
+        }
+
+        .stat-value.flash-green {
+            animation: flashGreen 0.5s ease;
+        }
+
+        .stat-value.flash-red {
+            animation: flashRed 0.5s ease;
+        }
+
+        @keyframes flashGreen {
+            0%, 100% { background: transparent; }
+            50% { background: rgba(0, 255, 136, 0.2); }
+        }
+
+        @keyframes flashRed {
+            0%, 100% { background: transparent; }
+            50% { background: rgba(255, 71, 87, 0.2); }
+        }
+
+        /* Token Price Row */
+        .token-price-row {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            margin: 0.5rem 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            transition: all 0.2s;
+        }
+
+        .token-price-row:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .token-price-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-right: 0.75rem;
+        }
+
+        .token-price-info {
+            flex: 1;
+        }
+
+        .token-price-name {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .token-price-symbol {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .token-price-data {
+            text-align: right;
+        }
+
+        .token-price-value {
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .token-price-change {
+            font-size: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 0.25rem;
+        }
+
+        /* Mini Chart */
+        .mini-chart {
+            width: 60px;
+            height: 30px;
+            margin-left: 0.75rem;
+        }
+
+        .mini-chart svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Global Stats Bar */
+        .global-stats {
+            display: flex;
+            gap: 1.5rem;
+            padding: 0.75rem 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+        }
+
+        .global-stat {
+            display: flex;
+            flex-direction: column;
+            min-width: fit-content;
+        }
+
+        .global-stat-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+        }
+
+        .global-stat-value {
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        /* Trending Section */
+        .trending-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .trending-icon {
+            color: #f7931a;
+        }
+
+        .gas-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 0.75rem;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+            font-size: 0.8rem;
+        }
+
+        .gas-icon {
+            color: #00d4ff;
+        }
+
+        /* Token List Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 420px;
+            max-height: 80vh;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0d1a2e 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            overflow: hidden;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .modal-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .token-search {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            background: rgba(0, 0, 0, 0.3);
+            border: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+        }
+
+        .token-search::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .token-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding: 0.5rem;
+        }
+
+        .token-list-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1rem;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .token-list-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .token-list-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .token-list-info {
+            flex: 1;
+        }
+
+        .token-list-symbol {
+            font-weight: 600;
+        }
+
+        .token-list-name {
+            font-size: 0.875rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .token-list-balance {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        /* Transaction Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 16px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(150%);
+            transition: transform 0.3s ease;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        .toast-icon {
+            width: 24px;
+            height: 24px;
+            color: #00ff88;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .main {
+                padding: 1.5rem 1rem;
+            }
+
+            .stats-panel {
+                max-width: 480px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <nav class="nav">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <span>DefiSwap</span>
+        </div>
+
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/exchange" class="nav-link active">Swap</a>
+            <a href="#" class="nav-link">Pool</a>
+            <a href="#" class="nav-link">Charts</a>
+        </div>
+
+        <button class="connect-btn" id="connectBtn" onclick="connectWallet()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                <path d="M22 10h-4a2 2 0 100 4h4"/>
+            </svg>
+            <span id="connectText">Connect Wallet</span>
+        </button>
+    </nav>
+
+    <main class="main">
+        <div class="swap-card">
+            <div class="card-header">
+                <h2 class="card-title">Swap</h2>
+                <button class="settings-btn">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"/>
+                        <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="token-input-container" id="fromContainer">
+                <div class="token-input-header">
+                    <span>From</span>
+                    <span>Balance: <span id="fromBalance">0.00</span></span>
+                </div>
+                <div class="token-input-row">
+                    <input type="text" class="token-amount" id="fromAmount" placeholder="0.0" oninput="calculateSwap()">
+                    <div class="token-select" onclick="openTokenModal('from')">
+                        <div class="token-icon" id="fromIcon" style="background: linear-gradient(135deg, #627eea, #3c3c3d);">E</div>
+                        <span class="token-symbol" id="fromSymbol">ETH</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="swap-arrow-container">
+                <button class="swap-arrow" onclick="swapTokens()">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M7 16V4M7 4L3 8M7 4l4 4M17 8v12M17 20l4-4M17 20l-4-4"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="token-input-container" id="toContainer">
+                <div class="token-input-header">
+                    <span>To</span>
+                    <span>Balance: <span id="toBalance">0.00</span></span>
+                </div>
+                <div class="token-input-row">
+                    <input type="text" class="token-amount" id="toAmount" placeholder="0.0" readonly>
+                    <div class="token-select" onclick="openTokenModal('to')">
+                        <div class="token-icon" id="toIcon" style="background: linear-gradient(135deg, #26a17b, #1a7a5c);">U</div>
+                        <span class="token-symbol" id="toSymbol">USDC</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M6 9l6 6 6-6"/>
+                        </svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="price-info">
+                <span class="price-info-label">Price</span>
+                <span class="price-info-value" id="priceInfo">1 ETH = 3,245.67 USDC</span>
+            </div>
+
+            <button class="swap-btn" id="swapBtn" onclick="executeSwap()" disabled>
+                Connect Wallet
+            </button>
+        </div>
+
+        <div class="stats-panel">
+            <!-- Global Stats -->
+            <div class="global-stats">
+                <div class="global-stat">
+                    <span class="global-stat-label">Market Cap</span>
+                    <span class="global-stat-value" id="globalMarketCap">$2.41T</span>
+                </div>
+                <div class="global-stat">
+                    <span class="global-stat-label">24h Vol</span>
+                    <span class="global-stat-value" id="globalVolume">$89.2B</span>
+                </div>
+                <div class="global-stat">
+                    <span class="global-stat-label">BTC Dom</span>
+                    <span class="global-stat-value">52.4%</span>
+                </div>
+                <div class="global-stat">
+                    <span class="global-stat-label">Gas</span>
+                    <span class="global-stat-value" id="gasPrice">24 gwei</span>
+                </div>
+            </div>
+
+            <!-- Live Prices -->
+            <div class="stats-card">
+                <div class="stats-header">
+                    <span class="stats-title">Live Prices</span>
+                    <span class="live-badge">
+                        <span class="live-dot"></span>
+                        LIVE
+                    </span>
+                </div>
+
+                <div id="livePrices">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+
+            <!-- Market Stats -->
+            <div class="stats-card">
+                <div class="stats-header">
+                    <span class="stats-title">Market Stats</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">24h Volume</span>
+                    <span class="stat-value" id="volume24h">$1.24B</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Trades</span>
+                    <span class="stat-value" id="totalTrades">142,847</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">TVL</span>
+                    <span class="stat-value" id="tvl">$4.82B</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Active Users</span>
+                    <span class="stat-value" id="activeUsers">8,421</span>
+                </div>
+            </div>
+
+            <!-- Portfolio -->
+            <div class="stats-card">
+                <div class="stats-header">
+                    <span class="stats-title">Your Portfolio</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Total Value</span>
+                    <span class="stat-value" id="portfolioValue">$0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">24h P&L</span>
+                    <span class="stat-value positive" id="portfolioPnl">+$0.00</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">ETH Balance</span>
+                    <span class="stat-value" id="ethBalance">0.00 ETH</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">USDC Balance</span>
+                    <span class="stat-value" id="usdcBalance">0.00 USDC</span>
+                </div>
+            </div>
+
+            <!-- Pod Info -->
+            <div class="stats-card">
+                <div class="stats-header">
+                    <span class="stats-title">Network</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Pod</span>
+                    <span class="stat-value" style="font-size: 0.7rem; font-family: monospace;">{{ hostname }}</span>
+                </div>
+                <div class="stat-row">
+                    <span class="stat-label">Block</span>
+                    <span class="stat-value" id="blockNumber">19,847,234</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Token Selection Modal -->
+    <div class="modal" id="tokenModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Select Token</h3>
+                <button class="modal-close" onclick="closeTokenModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            <input type="text" class="token-search" placeholder="Search by name or address" oninput="filterTokens(this.value)">
+            <div class="token-list" id="tokenList"></div>
+        </div>
+    </div>
+
+    <!-- Success Toast -->
+    <div class="toast" id="toast">
+        <svg class="toast-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+            <path d="M22 4L12 14.01l-3-3"/>
+        </svg>
+        <span id="toastMessage">Transaction submitted!</span>
+    </div>
+
+    <script>
+        // Token data
+        const tokens = [
+            { symbol: 'ETH', name: 'Ethereum', icon: 'E', color: 'linear-gradient(135deg, #627eea, #3c3c3d)', price: 3245.67, balance: 2.5 },
+            { symbol: 'USDC', name: 'USD Coin', icon: 'U', color: 'linear-gradient(135deg, #2775ca, #1a5a9e)', price: 1.00, balance: 5000 },
+            { symbol: 'USDT', name: 'Tether', icon: 'T', color: 'linear-gradient(135deg, #26a17b, #1a7a5c)', price: 1.00, balance: 2500 },
+            { symbol: 'WBTC', name: 'Wrapped Bitcoin', icon: 'B', color: 'linear-gradient(135deg, #f7931a, #c77a15)', price: 67500, balance: 0.05 },
+            { symbol: 'DAI', name: 'Dai', icon: 'D', color: 'linear-gradient(135deg, #f5ac37, #c98a2c)', price: 1.00, balance: 1000 },
+            { symbol: 'LINK', name: 'Chainlink', icon: 'L', color: 'linear-gradient(135deg, #2a5ada, #1e42a8)', price: 14.50, balance: 100 },
+            { symbol: 'UNI', name: 'Uniswap', icon: 'U', color: 'linear-gradient(135deg, #ff007a, #c9005f)', price: 7.80, balance: 250 },
+            { symbol: 'AAVE', name: 'Aave', icon: 'A', color: 'linear-gradient(135deg, #b6509e, #8e3d7a)', price: 95.20, balance: 25 },
+        ];
+
+        let fromToken = tokens[0];
+        let toToken = tokens[1];
+        let selectingFor = 'from';
+        let isConnected = false;
+
+        // Market data for live prices
+        const marketData = [
+            { symbol: 'BTC', name: 'Bitcoin', price: 67542.30, change: 2.34, color: '#f7931a', history: [] },
+            { symbol: 'ETH', name: 'Ethereum', price: 3245.67, change: 1.87, color: '#627eea', history: [] },
+            { symbol: 'SOL', name: 'Solana', price: 142.85, change: -0.92, color: '#00ffa3', history: [] },
+            { symbol: 'BNB', name: 'BNB', price: 584.20, change: 0.45, color: '#f3ba2f', history: [] },
+        ];
+
+        let blockNumber = 19847234;
+
+        // Initialize histories
+        marketData.forEach(token => {
+            for (let i = 0; i < 20; i++) {
+                token.history.push(token.price * (0.98 + Math.random() * 0.04));
+            }
+        });
+
+        // Initialize
+        function init() {
+            updateTokenDisplay();
+            renderTokenList(tokens);
+            renderLivePrices();
+            startLiveUpdates();
+        }
+
+        // Render live prices
+        function renderLivePrices() {
+            const container = document.getElementById('livePrices');
+            container.innerHTML = marketData.map((token, idx) => `
+                <div class="token-price-row" id="price-row-${idx}">
+                    <div class="token-price-icon" style="background: ${token.color};">${token.symbol[0]}</div>
+                    <div class="token-price-info">
+                        <div class="token-price-name">${token.symbol}</div>
+                        <div class="token-price-symbol">${token.name}</div>
+                    </div>
+                    <div class="token-price-data">
+                        <div class="token-price-value" id="price-${idx}">$${token.price.toLocaleString()}</div>
+                        <div class="token-price-change ${token.change >= 0 ? 'positive' : 'negative'}" id="change-${idx}">
+                            ${token.change >= 0 ? '↑' : '↓'} ${Math.abs(token.change).toFixed(2)}%
+                        </div>
+                    </div>
+                    <div class="mini-chart" id="chart-${idx}">
+                        ${generateSparkline(token.history, token.change >= 0 ? '#00ff88' : '#ff4757')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Generate SVG sparkline
+        function generateSparkline(data, color) {
+            const width = 60;
+            const height = 30;
+            const min = Math.min(...data);
+            const max = Math.max(...data);
+            const range = max - min || 1;
+
+            const points = data.map((val, i) => {
+                const x = (i / (data.length - 1)) * width;
+                const y = height - ((val - min) / range) * height;
+                return `${x},${y}`;
+            }).join(' ');
+
+            return `
+                <svg viewBox="0 0 ${width} ${height}">
+                    <polyline fill="none" stroke="${color}" stroke-width="1.5" points="${points}"/>
+                </svg>
+            `;
+        }
+
+        // Start live updates
+        function startLiveUpdates() {
+            setInterval(() => {
+                updatePrices();
+                updateMarketStats();
+                updateBlockNumber();
+            }, 2000);
+        }
+
+        // Update prices with random fluctuation
+        function updatePrices() {
+            marketData.forEach((token, idx) => {
+                const changePercent = (Math.random() - 0.5) * 0.5;
+                const oldPrice = token.price;
+                token.price = token.price * (1 + changePercent / 100);
+                token.change += (Math.random() - 0.5) * 0.1;
+
+                // Update history
+                token.history.shift();
+                token.history.push(token.price);
+
+                // Update DOM
+                const priceEl = document.getElementById(`price-${idx}`);
+                const changeEl = document.getElementById(`change-${idx}`);
+                const chartEl = document.getElementById(`chart-${idx}`);
+
+                if (priceEl) {
+                    priceEl.textContent = '$' + token.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+                    // Flash effect
+                    priceEl.classList.remove('flash-green', 'flash-red');
+                    void priceEl.offsetWidth; // Trigger reflow
+                    priceEl.classList.add(token.price > oldPrice ? 'flash-green' : 'flash-red');
+                }
+
+                if (changeEl) {
+                    const isPositive = token.change >= 0;
+                    changeEl.className = `token-price-change ${isPositive ? 'positive' : 'negative'}`;
+                    changeEl.innerHTML = `${isPositive ? '↑' : '↓'} ${Math.abs(token.change).toFixed(2)}%`;
+                }
+
+                if (chartEl) {
+                    chartEl.innerHTML = generateSparkline(token.history, token.change >= 0 ? '#00ff88' : '#ff4757');
+                }
+            });
+
+            // Update main token prices
+            const ethData = marketData.find(t => t.symbol === 'ETH');
+            if (ethData) {
+                tokens[0].price = ethData.price;
+                if (isConnected) {
+                    document.getElementById('portfolioValue').textContent = '$' + calculatePortfolioValue().toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                }
+            }
+        }
+
+        // Update market stats
+        function updateMarketStats() {
+            const volume = 1.24 + (Math.random() - 0.5) * 0.1;
+            const trades = 142847 + Math.floor(Math.random() * 100);
+            const tvl = 4.82 + (Math.random() - 0.5) * 0.05;
+            const users = 8421 + Math.floor((Math.random() - 0.5) * 50);
+            const gas = 20 + Math.floor(Math.random() * 15);
+
+            document.getElementById('volume24h').textContent = `$${volume.toFixed(2)}B`;
+            document.getElementById('totalTrades').textContent = trades.toLocaleString();
+            document.getElementById('tvl').textContent = `$${tvl.toFixed(2)}B`;
+            document.getElementById('activeUsers').textContent = users.toLocaleString();
+            document.getElementById('gasPrice').textContent = `${gas} gwei`;
+        }
+
+        // Update block number
+        function updateBlockNumber() {
+            blockNumber += Math.floor(Math.random() * 2);
+            document.getElementById('blockNumber').textContent = blockNumber.toLocaleString();
+        }
+
+        // Wallet connection
+        function connectWallet() {
+            const btn = document.getElementById('connectBtn');
+            const text = document.getElementById('connectText');
+            const swapBtn = document.getElementById('swapBtn');
+
+            if (!isConnected) {
+                btn.classList.add('connected');
+                text.textContent = '0x7a...3f4d';
+                isConnected = true;
+                swapBtn.disabled = false;
+                swapBtn.textContent = 'Swap';
+
+                // Update balances
+                document.getElementById('fromBalance').textContent = fromToken.balance.toFixed(4);
+                document.getElementById('toBalance').textContent = toToken.balance.toFixed(4);
+                document.getElementById('portfolioValue').textContent = '$' + calculatePortfolioValue().toLocaleString();
+                document.getElementById('ethBalance').textContent = tokens[0].balance.toFixed(4) + ' ETH';
+                document.getElementById('usdcBalance').textContent = tokens[1].balance.toFixed(2) + ' USDC';
+
+                showToast('Wallet connected successfully!');
+            } else {
+                btn.classList.remove('connected');
+                text.textContent = 'Connect Wallet';
+                isConnected = false;
+                swapBtn.disabled = true;
+                swapBtn.textContent = 'Connect Wallet';
+
+                document.getElementById('fromBalance').textContent = '0.00';
+                document.getElementById('toBalance').textContent = '0.00';
+                document.getElementById('portfolioValue').textContent = '$0.00';
+                document.getElementById('ethBalance').textContent = '0.00 ETH';
+                document.getElementById('usdcBalance').textContent = '0.00 USDC';
+            }
+        }
+
+        function calculatePortfolioValue() {
+            return tokens.reduce((sum, t) => sum + (t.balance * t.price), 0);
+        }
+
+        // Token selection
+        function openTokenModal(type) {
+            selectingFor = type;
+            document.getElementById('tokenModal').classList.add('active');
+        }
+
+        function closeTokenModal() {
+            document.getElementById('tokenModal').classList.remove('active');
+        }
+
+        function renderTokenList(tokenList) {
+            const list = document.getElementById('tokenList');
+            list.innerHTML = tokenList.map(t => `
+                <div class="token-list-item" onclick="selectToken('${t.symbol}')">
+                    <div class="token-list-icon" style="background: ${t.color};">${t.icon}</div>
+                    <div class="token-list-info">
+                        <div class="token-list-symbol">${t.symbol}</div>
+                        <div class="token-list-name">${t.name}</div>
+                    </div>
+                    <div class="token-list-balance">${isConnected ? t.balance.toFixed(4) : '—'}</div>
+                </div>
+            `).join('');
+        }
+
+        function filterTokens(query) {
+            const filtered = tokens.filter(t =>
+                t.symbol.toLowerCase().includes(query.toLowerCase()) ||
+                t.name.toLowerCase().includes(query.toLowerCase())
+            );
+            renderTokenList(filtered);
+        }
+
+        function selectToken(symbol) {
+            const token = tokens.find(t => t.symbol === symbol);
+            if (selectingFor === 'from') {
+                if (token.symbol === toToken.symbol) {
+                    toToken = fromToken;
+                }
+                fromToken = token;
+            } else {
+                if (token.symbol === fromToken.symbol) {
+                    fromToken = toToken;
+                }
+                toToken = token;
+            }
+            updateTokenDisplay();
+            calculateSwap();
+            closeTokenModal();
+        }
+
+        function updateTokenDisplay() {
+            document.getElementById('fromIcon').style.background = fromToken.color;
+            document.getElementById('fromIcon').textContent = fromToken.icon;
+            document.getElementById('fromSymbol').textContent = fromToken.symbol;
+
+            document.getElementById('toIcon').style.background = toToken.color;
+            document.getElementById('toIcon').textContent = toToken.icon;
+            document.getElementById('toSymbol').textContent = toToken.symbol;
+
+            if (isConnected) {
+                document.getElementById('fromBalance').textContent = fromToken.balance.toFixed(4);
+                document.getElementById('toBalance').textContent = toToken.balance.toFixed(4);
+            }
+
+            updatePriceInfo();
+        }
+
+        function swapTokens() {
+            const temp = fromToken;
+            fromToken = toToken;
+            toToken = temp;
+
+            const fromAmt = document.getElementById('fromAmount').value;
+            const toAmt = document.getElementById('toAmount').value;
+            document.getElementById('fromAmount').value = toAmt;
+
+            updateTokenDisplay();
+            calculateSwap();
+        }
+
+        // Price calculation
+        function calculateSwap() {
+            const fromAmount = parseFloat(document.getElementById('fromAmount').value) || 0;
+            const rate = fromToken.price / toToken.price;
+            const toAmount = fromAmount * rate * 0.997; // 0.3% fee
+
+            document.getElementById('toAmount').value = toAmount > 0 ? toAmount.toFixed(6) : '';
+            updatePriceInfo();
+        }
+
+        function updatePriceInfo() {
+            const rate = fromToken.price / toToken.price;
+            document.getElementById('priceInfo').textContent =
+                `1 ${fromToken.symbol} = ${rate.toLocaleString(undefined, {maximumFractionDigits: 6})} ${toToken.symbol}`;
+        }
+
+        // Execute swap
+        async function executeSwap() {
+            const btn = document.getElementById('swapBtn');
+            const fromAmount = parseFloat(document.getElementById('fromAmount').value);
+
+            if (!fromAmount || fromAmount <= 0) {
+                showToast('Enter an amount');
+                return;
+            }
+
+            if (fromAmount > fromToken.balance) {
+                showToast('Insufficient balance');
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            // Simulate transaction
+            await new Promise(r => setTimeout(r, 2000));
+
+            const toAmount = parseFloat(document.getElementById('toAmount').value);
+            fromToken.balance -= fromAmount;
+            toToken.balance += toAmount;
+
+            document.getElementById('fromBalance').textContent = fromToken.balance.toFixed(4);
+            document.getElementById('toBalance').textContent = toToken.balance.toFixed(4);
+            document.getElementById('fromAmount').value = '';
+            document.getElementById('toAmount').value = '';
+
+            document.getElementById('portfolioValue').textContent = '$' + calculatePortfolioValue().toLocaleString();
+            document.getElementById('ethBalance').textContent = tokens[0].balance.toFixed(4) + ' ETH';
+            document.getElementById('usdcBalance').textContent = tokens[1].balance.toFixed(2) + ' USDC';
+
+            btn.classList.remove('loading');
+            btn.disabled = false;
+
+            showToast(`Swapped ${fromAmount} ${fromToken.symbol} for ${toAmount.toFixed(4)} ${toToken.symbol}`);
+        }
+
+        // Toast notification
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('tokenModal').addEventListener('click', (e) => {
+            if (e.target.id === 'tokenModal') closeTokenModal();
+        });
+
+        init();
+    </script>
+</body>
+</html>

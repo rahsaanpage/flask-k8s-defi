@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DefiSwap | Charts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: #0a0a14;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #fff;
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .nav-link {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        /* Main Layout */
+        .main {
+            display: grid;
+            grid-template-columns: 1fr 320px;
+            grid-template-rows: auto 1fr auto;
+            height: calc(100vh - 60px);
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .panel {
+            background: #0a0a14;
+            padding: 1rem;
+        }
+
+        /* Chart Header */
+        .chart-header {
+            grid-column: 1 / -1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.75rem 1rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pair-selector {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .pair-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pair-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .pair-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .price-display {
+            display: flex;
+            align-items: baseline;
+            gap: 0.75rem;
+        }
+
+        .current-price {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .price-change {
+            font-size: 0.9rem;
+            font-weight: 500;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+        }
+
+        .price-change.positive {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .price-change.negative {
+            color: #ff4757;
+            background: rgba(255, 71, 87, 0.1);
+        }
+
+        .ohlc-data {
+            display: flex;
+            gap: 1.5rem;
+            font-size: 0.8rem;
+        }
+
+        .ohlc-item {
+            display: flex;
+            gap: 0.375rem;
+        }
+
+        .ohlc-label {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .ohlc-value {
+            font-weight: 500;
+        }
+
+        /* Timeframe Selector */
+        .timeframes {
+            display: flex;
+            gap: 0.25rem;
+        }
+
+        .tf-btn {
+            padding: 0.375rem 0.75rem;
+            background: transparent;
+            border: none;
+            border-radius: 6px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tf-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tf-btn.active {
+            color: #00d4ff;
+            background: rgba(0, 212, 255, 0.15);
+        }
+
+        /* Chart Container */
+        .chart-container {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .chart-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Crosshair */
+        .crosshair-x, .crosshair-y {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+            display: none;
+        }
+
+        .crosshair-x {
+            width: 1px;
+            height: 100%;
+        }
+
+        .crosshair-y {
+            width: 100%;
+            height: 1px;
+        }
+
+        .crosshair-label {
+            position: absolute;
+            background: #2a2a3e;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            pointer-events: none;
+            display: none;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .sidebar-section {
+            background: #0a0a14;
+            padding: 1rem;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+        }
+
+        .section-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.7);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .live-dot {
+            width: 6px;
+            height: 6px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* Order Book */
+        .orderbook {
+            font-size: 0.8rem;
+        }
+
+        .orderbook-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: 0.5rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.7rem;
+        }
+
+        .orderbook-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+            padding: 0.25rem 0;
+            position: relative;
+        }
+
+        .orderbook-row .depth-bar {
+            position: absolute;
+            right: 0;
+            top: 0;
+            height: 100%;
+            opacity: 0.15;
+        }
+
+        .orderbook-row.ask .depth-bar {
+            background: #ff4757;
+        }
+
+        .orderbook-row.bid .depth-bar {
+            background: #00ff88;
+        }
+
+        .orderbook-row.ask .price {
+            color: #ff4757;
+        }
+
+        .orderbook-row.bid .price {
+            color: #00ff88;
+        }
+
+        .orderbook-spread {
+            text-align: center;
+            padding: 0.5rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 4px;
+            margin: 0.5rem 0;
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Trades List */
+        .trades-list {
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .trade-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 0.5rem;
+            padding: 0.375rem 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .trade-row.buy .price {
+            color: #00ff88;
+        }
+
+        .trade-row.sell .price {
+            color: #ff4757;
+        }
+
+        .trade-time {
+            color: rgba(255, 255, 255, 0.5);
+            text-align: right;
+        }
+
+        /* Market Info */
+        .market-info {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+        }
+
+        .info-label {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .info-value {
+            font-weight: 500;
+        }
+
+        .info-value.positive { color: #00ff88; }
+        .info-value.negative { color: #ff4757; }
+
+        /* Bottom Panel */
+        .bottom-panel {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .volume-chart {
+            flex: 1;
+            background: #0a0a14;
+            padding: 0.75rem 1rem;
+        }
+
+        .volume-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .volume-title {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .volume-value {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .volume-bars {
+            display: flex;
+            align-items: flex-end;
+            gap: 2px;
+            height: 50px;
+        }
+
+        .volume-bar {
+            flex: 1;
+            min-width: 4px;
+            background: rgba(0, 212, 255, 0.5);
+            border-radius: 1px;
+            transition: height 0.3s;
+        }
+
+        .volume-bar.down {
+            background: rgba(255, 71, 87, 0.5);
+        }
+
+        /* Token Dropdown */
+        .token-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            background: #1a1a2e;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.5rem;
+            z-index: 100;
+            min-width: 200px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .token-dropdown.active {
+            display: block;
+        }
+
+        .token-option {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .token-option:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .token-option-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+        }
+
+        .token-option-info {
+            flex: 1;
+        }
+
+        .token-option-symbol {
+            font-weight: 600;
+        }
+
+        .token-option-name {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 2px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .main {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+
+            .ohlc-data {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <div class="logo">
+            <div class="logo-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <span>DefiSwap</span>
+        </div>
+
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/exchange" class="nav-link">Swap</a>
+            <a href="#" class="nav-link">Pool</a>
+            <a href="/charts" class="nav-link active">Charts</a>
+        </div>
+    </nav>
+
+    <main class="main">
+        <!-- Chart Header -->
+        <div class="chart-header panel">
+            <div class="pair-selector">
+                <div class="pair-btn" onclick="toggleTokenDropdown()" style="position: relative;">
+                    <div class="pair-icon" id="pairIcon" style="background: linear-gradient(135deg, #627eea, #3c3c3d);">E</div>
+                    <span id="pairName">ETH/USDC</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                    <div class="token-dropdown" id="tokenDropdown">
+                        <div class="token-option" onclick="selectPair('ETH', 'Ethereum', '#627eea')">
+                            <div class="token-option-icon" style="background: #627eea;">E</div>
+                            <div class="token-option-info">
+                                <div class="token-option-symbol">ETH/USDC</div>
+                                <div class="token-option-name">Ethereum</div>
+                            </div>
+                        </div>
+                        <div class="token-option" onclick="selectPair('BTC', 'Bitcoin', '#f7931a')">
+                            <div class="token-option-icon" style="background: #f7931a;">B</div>
+                            <div class="token-option-info">
+                                <div class="token-option-symbol">BTC/USDC</div>
+                                <div class="token-option-name">Bitcoin</div>
+                            </div>
+                        </div>
+                        <div class="token-option" onclick="selectPair('SOL', 'Solana', '#00ffa3')">
+                            <div class="token-option-icon" style="background: #00ffa3;">S</div>
+                            <div class="token-option-info">
+                                <div class="token-option-symbol">SOL/USDC</div>
+                                <div class="token-option-name">Solana</div>
+                            </div>
+                        </div>
+                        <div class="token-option" onclick="selectPair('LINK', 'Chainlink', '#2a5ada')">
+                            <div class="token-option-icon" style="background: #2a5ada;">L</div>
+                            <div class="token-option-info">
+                                <div class="token-option-symbol">LINK/USDC</div>
+                                <div class="token-option-name">Chainlink</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="price-display">
+                    <span class="current-price" id="currentPrice">$3,245.67</span>
+                    <span class="price-change positive" id="priceChange">+2.45%</span>
+                </div>
+
+                <div class="ohlc-data">
+                    <div class="ohlc-item">
+                        <span class="ohlc-label">O</span>
+                        <span class="ohlc-value" id="ohlcOpen">3,221.40</span>
+                    </div>
+                    <div class="ohlc-item">
+                        <span class="ohlc-label">H</span>
+                        <span class="ohlc-value" id="ohlcHigh">3,289.50</span>
+                    </div>
+                    <div class="ohlc-item">
+                        <span class="ohlc-label">L</span>
+                        <span class="ohlc-value" id="ohlcLow">3,198.20</span>
+                    </div>
+                    <div class="ohlc-item">
+                        <span class="ohlc-label">C</span>
+                        <span class="ohlc-value" id="ohlcClose">3,245.67</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="timeframes">
+                <button class="tf-btn" onclick="setTimeframe('1m')">1m</button>
+                <button class="tf-btn" onclick="setTimeframe('5m')">5m</button>
+                <button class="tf-btn" onclick="setTimeframe('15m')">15m</button>
+                <button class="tf-btn active" onclick="setTimeframe('1h')">1H</button>
+                <button class="tf-btn" onclick="setTimeframe('4h')">4H</button>
+                <button class="tf-btn" onclick="setTimeframe('1d')">1D</button>
+                <button class="tf-btn" onclick="setTimeframe('1w')">1W</button>
+            </div>
+        </div>
+
+        <!-- Main Chart -->
+        <div class="chart-container panel">
+            <canvas id="chartCanvas" class="chart-canvas"></canvas>
+            <div class="crosshair-x" id="crosshairX"></div>
+            <div class="crosshair-y" id="crosshairY"></div>
+            <div class="crosshair-label" id="crosshairLabel"></div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span class="section-title">Order Book</span>
+                    <span class="live-dot"></span>
+                </div>
+                <div class="orderbook">
+                    <div class="orderbook-header">
+                        <span>Price</span>
+                        <span>Size</span>
+                        <span>Total</span>
+                    </div>
+                    <div id="asks"></div>
+                    <div class="orderbook-spread">
+                        Spread: <span id="spread">$0.12 (0.004%)</span>
+                    </div>
+                    <div id="bids"></div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span class="section-title">Recent Trades</span>
+                    <span class="live-dot"></span>
+                </div>
+                <div class="trades-list" id="tradesList"></div>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="section-header">
+                    <span class="section-title">Market Info</span>
+                </div>
+                <div class="market-info">
+                    <div class="info-row">
+                        <span class="info-label">24h High</span>
+                        <span class="info-value" id="high24h">$3,312.45</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">24h Low</span>
+                        <span class="info-value" id="low24h">$3,145.20</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">24h Volume</span>
+                        <span class="info-value" id="vol24h">$1.24B</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Market Cap</span>
+                        <span class="info-value" id="marketCap">$389.4B</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Pod</span>
+                        <span class="info-value" style="font-size: 0.65rem; font-family: monospace;">{{ hostname }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Volume Chart -->
+        <div class="bottom-panel">
+            <div class="volume-chart">
+                <div class="volume-header">
+                    <span class="volume-title">Volume</span>
+                    <span class="volume-value" id="volumeValue">$124.5M</span>
+                </div>
+                <div class="volume-bars" id="volumeBars"></div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Chart data
+        const pairs = {
+            ETH: { price: 3245.67, change: 2.45, color: '#627eea' },
+            BTC: { price: 67542.30, change: 1.87, color: '#f7931a' },
+            SOL: { price: 142.85, change: -0.92, color: '#00ffa3' },
+            LINK: { price: 14.50, change: 3.21, color: '#2a5ada' }
+        };
+
+        let currentPair = 'ETH';
+        let candleData = [];
+        let volumeData = [];
+        let canvas, ctx;
+        let timeframe = '1h';
+
+        // Initialize
+        function init() {
+            canvas = document.getElementById('chartCanvas');
+            ctx = canvas.getContext('2d');
+            resizeCanvas();
+            generateCandleData();
+            generateVolumeData();
+            renderChart();
+            renderOrderBook();
+            renderTrades();
+            startLiveUpdates();
+
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                renderChart();
+            });
+
+            // Crosshair
+            canvas.addEventListener('mousemove', handleMouseMove);
+            canvas.addEventListener('mouseleave', hideCrosshair);
+        }
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+        }
+
+        // Generate candle data
+        function generateCandleData() {
+            candleData = [];
+            let price = pairs[currentPair].price * 0.95;
+
+            for (let i = 0; i < 60; i++) {
+                const change = (Math.random() - 0.48) * price * 0.02;
+                const open = price;
+                const close = price + change;
+                const high = Math.max(open, close) + Math.random() * price * 0.005;
+                const low = Math.min(open, close) - Math.random() * price * 0.005;
+
+                candleData.push({ open, high, low, close, volume: Math.random() * 1000000 });
+                price = close;
+            }
+        }
+
+        // Generate volume data
+        function generateVolumeData() {
+            volumeData = candleData.map((c, i) => ({
+                value: c.volume,
+                up: c.close >= c.open
+            }));
+            renderVolumeBars();
+        }
+
+        // Render volume bars
+        function renderVolumeBars() {
+            const container = document.getElementById('volumeBars');
+            const maxVol = Math.max(...volumeData.map(v => v.value));
+
+            container.innerHTML = volumeData.slice(-40).map(v => `
+                <div class="volume-bar ${v.up ? '' : 'down'}" style="height: ${(v.value / maxVol) * 100}%"></div>
+            `).join('');
+        }
+
+        // Render candlestick chart
+        function renderChart() {
+            const width = canvas.width;
+            const height = canvas.height;
+            const padding = { top: 20, right: 60, bottom: 30, left: 10 };
+
+            ctx.clearRect(0, 0, width, height);
+
+            // Background grid
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+            ctx.lineWidth = 1;
+
+            for (let i = 0; i < 5; i++) {
+                const y = padding.top + (height - padding.top - padding.bottom) * i / 4;
+                ctx.beginPath();
+                ctx.moveTo(padding.left, y);
+                ctx.lineTo(width - padding.right, y);
+                ctx.stroke();
+            }
+
+            // Price range
+            const prices = candleData.flatMap(c => [c.high, c.low]);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const priceRange = maxPrice - minPrice;
+
+            const chartWidth = width - padding.left - padding.right;
+            const chartHeight = height - padding.top - padding.bottom;
+            const candleWidth = chartWidth / candleData.length * 0.8;
+            const gap = chartWidth / candleData.length * 0.2;
+
+            // Draw candles
+            candleData.forEach((candle, i) => {
+                const x = padding.left + i * (candleWidth + gap) + gap / 2;
+                const isUp = candle.close >= candle.open;
+
+                const highY = padding.top + (1 - (candle.high - minPrice) / priceRange) * chartHeight;
+                const lowY = padding.top + (1 - (candle.low - minPrice) / priceRange) * chartHeight;
+                const openY = padding.top + (1 - (candle.open - minPrice) / priceRange) * chartHeight;
+                const closeY = padding.top + (1 - (candle.close - minPrice) / priceRange) * chartHeight;
+
+                // Wick
+                ctx.strokeStyle = isUp ? '#00ff88' : '#ff4757';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(x + candleWidth / 2, highY);
+                ctx.lineTo(x + candleWidth / 2, lowY);
+                ctx.stroke();
+
+                // Body
+                ctx.fillStyle = isUp ? '#00ff88' : '#ff4757';
+                const bodyTop = Math.min(openY, closeY);
+                const bodyHeight = Math.max(Math.abs(closeY - openY), 1);
+                ctx.fillRect(x, bodyTop, candleWidth, bodyHeight);
+            });
+
+            // Price labels
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+            ctx.font = '11px -apple-system, sans-serif';
+            ctx.textAlign = 'left';
+
+            for (let i = 0; i <= 4; i++) {
+                const price = maxPrice - (priceRange * i / 4);
+                const y = padding.top + chartHeight * i / 4;
+                ctx.fillText('$' + price.toFixed(2), width - padding.right + 5, y + 4);
+            }
+
+            // Current price line
+            const currentPrice = candleData[candleData.length - 1].close;
+            const currentY = padding.top + (1 - (currentPrice - minPrice) / priceRange) * chartHeight;
+
+            ctx.strokeStyle = '#00d4ff';
+            ctx.setLineDash([5, 5]);
+            ctx.beginPath();
+            ctx.moveTo(padding.left, currentY);
+            ctx.lineTo(width - padding.right, currentY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Current price label
+            ctx.fillStyle = '#00d4ff';
+            ctx.fillRect(width - padding.right, currentY - 10, 55, 20);
+            ctx.fillStyle = '#000';
+            ctx.fillText('$' + currentPrice.toFixed(2), width - padding.right + 3, currentY + 4);
+        }
+
+        // Crosshair
+        function handleMouseMove(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            document.getElementById('crosshairX').style.left = x + 'px';
+            document.getElementById('crosshairX').style.display = 'block';
+            document.getElementById('crosshairY').style.top = y + 'px';
+            document.getElementById('crosshairY').style.display = 'block';
+
+            // Price at cursor
+            const padding = { top: 20, bottom: 30 };
+            const chartHeight = canvas.height - padding.top - padding.bottom;
+            const prices = candleData.flatMap(c => [c.high, c.low]);
+            const minPrice = Math.min(...prices);
+            const maxPrice = Math.max(...prices);
+            const priceRange = maxPrice - minPrice;
+
+            const price = maxPrice - ((y - padding.top) / chartHeight) * priceRange;
+
+            const label = document.getElementById('crosshairLabel');
+            label.textContent = '$' + price.toFixed(2);
+            label.style.left = (x + 10) + 'px';
+            label.style.top = (y - 10) + 'px';
+            label.style.display = 'block';
+        }
+
+        function hideCrosshair() {
+            document.getElementById('crosshairX').style.display = 'none';
+            document.getElementById('crosshairY').style.display = 'none';
+            document.getElementById('crosshairLabel').style.display = 'none';
+        }
+
+        // Order book
+        function renderOrderBook() {
+            const basePrice = pairs[currentPair].price;
+            let asks = '', bids = '';
+
+            for (let i = 5; i >= 1; i--) {
+                const price = basePrice + i * 0.5;
+                const size = (Math.random() * 50).toFixed(3);
+                const total = (price * size).toFixed(2);
+                const depth = 20 + i * 15;
+                asks += `<div class="orderbook-row ask">
+                    <span class="price">$${price.toFixed(2)}</span>
+                    <span>${size}</span>
+                    <span>$${total}</span>
+                    <div class="depth-bar" style="width: ${depth}%"></div>
+                </div>`;
+            }
+
+            for (let i = 1; i <= 5; i++) {
+                const price = basePrice - i * 0.5;
+                const size = (Math.random() * 50).toFixed(3);
+                const total = (price * size).toFixed(2);
+                const depth = 20 + i * 15;
+                bids += `<div class="orderbook-row bid">
+                    <span class="price">$${price.toFixed(2)}</span>
+                    <span>${size}</span>
+                    <span>$${total}</span>
+                    <div class="depth-bar" style="width: ${depth}%"></div>
+                </div>`;
+            }
+
+            document.getElementById('asks').innerHTML = asks;
+            document.getElementById('bids').innerHTML = bids;
+        }
+
+        // Recent trades
+        function renderTrades() {
+            const basePrice = pairs[currentPair].price;
+            let html = '';
+
+            for (let i = 0; i < 15; i++) {
+                const isBuy = Math.random() > 0.5;
+                const price = basePrice + (Math.random() - 0.5) * 2;
+                const size = (Math.random() * 10).toFixed(4);
+                const time = new Date(Date.now() - i * 5000);
+                const timeStr = time.toLocaleTimeString('en-US', { hour12: false });
+
+                html += `<div class="trade-row ${isBuy ? 'buy' : 'sell'}">
+                    <span class="price">$${price.toFixed(2)}</span>
+                    <span>${size}</span>
+                    <span class="trade-time">${timeStr}</span>
+                </div>`;
+            }
+
+            document.getElementById('tradesList').innerHTML = html;
+        }
+
+        // Token dropdown
+        function toggleTokenDropdown() {
+            document.getElementById('tokenDropdown').classList.toggle('active');
+        }
+
+        function selectPair(symbol, name, color) {
+            currentPair = symbol;
+            document.getElementById('pairName').textContent = symbol + '/USDC';
+            document.getElementById('pairIcon').style.background = color;
+            document.getElementById('pairIcon').textContent = symbol[0];
+            document.getElementById('tokenDropdown').classList.remove('active');
+
+            updatePriceDisplay();
+            generateCandleData();
+            generateVolumeData();
+            renderChart();
+            renderOrderBook();
+            renderTrades();
+        }
+
+        // Timeframe
+        function setTimeframe(tf) {
+            timeframe = tf;
+            document.querySelectorAll('.tf-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            generateCandleData();
+            generateVolumeData();
+            renderChart();
+        }
+
+        // Update price display
+        function updatePriceDisplay() {
+            const pair = pairs[currentPair];
+            document.getElementById('currentPrice').textContent = '$' + pair.price.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            const changeEl = document.getElementById('priceChange');
+            changeEl.textContent = (pair.change >= 0 ? '+' : '') + pair.change.toFixed(2) + '%';
+            changeEl.className = 'price-change ' + (pair.change >= 0 ? 'positive' : 'negative');
+
+            // OHLC
+            const lastCandle = candleData[candleData.length - 1];
+            if (lastCandle) {
+                document.getElementById('ohlcOpen').textContent = lastCandle.open.toFixed(2);
+                document.getElementById('ohlcHigh').textContent = lastCandle.high.toFixed(2);
+                document.getElementById('ohlcLow').textContent = lastCandle.low.toFixed(2);
+                document.getElementById('ohlcClose').textContent = lastCandle.close.toFixed(2);
+            }
+        }
+
+        // Live updates
+        function startLiveUpdates() {
+            setInterval(() => {
+                // Update price
+                const change = (Math.random() - 0.5) * pairs[currentPair].price * 0.001;
+                pairs[currentPair].price += change;
+                pairs[currentPair].change += (Math.random() - 0.5) * 0.05;
+
+                // Update last candle
+                const last = candleData[candleData.length - 1];
+                last.close = pairs[currentPair].price;
+                last.high = Math.max(last.high, last.close);
+                last.low = Math.min(last.low, last.close);
+
+                updatePriceDisplay();
+                renderChart();
+                renderOrderBook();
+
+                // Add trade occasionally
+                if (Math.random() > 0.7) {
+                    addNewTrade();
+                }
+            }, 1500);
+        }
+
+        function addNewTrade() {
+            const basePrice = pairs[currentPair].price;
+            const isBuy = Math.random() > 0.5;
+            const price = basePrice + (Math.random() - 0.5) * 2;
+            const size = (Math.random() * 10).toFixed(4);
+            const time = new Date();
+            const timeStr = time.toLocaleTimeString('en-US', { hour12: false });
+
+            const newTrade = `<div class="trade-row ${isBuy ? 'buy' : 'sell'}">
+                <span class="price">$${price.toFixed(2)}</span>
+                <span>${size}</span>
+                <span class="trade-time">${timeStr}</span>
+            </div>`;
+
+            const list = document.getElementById('tradesList');
+            list.innerHTML = newTrade + list.innerHTML;
+
+            // Keep only 15 trades
+            while (list.children.length > 15) {
+                list.removeChild(list.lastChild);
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.pair-btn')) {
+                document.getElementById('tokenDropdown').classList.remove('active');
+            }
+        });
+
+        init();
+    </script>
+</body>
+</html>

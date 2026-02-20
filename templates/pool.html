@@ -1,0 +1,1006 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DefiSwap | Liquidity Pools</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0d0d1a 0%, #1a0a2e 50%, #0d1a2e 100%);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: #fff;
+        }
+
+        .bg-animation {
+            position: fixed;
+            inset: 0;
+            overflow: hidden;
+            z-index: -1;
+        }
+
+        .bg-animation::before {
+            content: '';
+            position: absolute;
+            width: 150%;
+            height: 150%;
+            top: -25%;
+            left: -25%;
+            background: radial-gradient(circle at 30% 70%, rgba(0, 212, 255, 0.12) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 30%, rgba(123, 47, 247, 0.12) 0%, transparent 50%);
+            animation: bgMove 25s ease-in-out infinite;
+        }
+
+        @keyframes bgMove {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(-3%, -3%); }
+        }
+
+        /* Navigation */
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 2rem;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-link {
+            padding: 0.625rem 1.25rem;
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .connect-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, #7b2ff7, #f107a3);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .connect-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px -10px rgba(123, 47, 247, 0.5);
+        }
+
+        .connect-btn.connected {
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        /* Main Content */
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+        }
+
+        .page-subtitle {
+            color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.25rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.25rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -10px rgba(0, 212, 255, 0.5);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Stats Overview */
+        .stats-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.25rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .stat-change {
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .stat-change.positive { color: #00ff88; }
+        .stat-change.negative { color: #ff4757; }
+
+        /* Pool Tabs */
+        .pool-tabs {
+            display: flex;
+            gap: 0.25rem;
+            margin-bottom: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.25rem;
+            border-radius: 12px;
+            width: fit-content;
+        }
+
+        .pool-tab {
+            padding: 0.625rem 1.25rem;
+            border: none;
+            background: transparent;
+            color: rgba(255, 255, 255, 0.6);
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .pool-tab:hover {
+            color: #fff;
+        }
+
+        .pool-tab.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        /* Pool List */
+        .pool-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .pool-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 1.25rem;
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.2s;
+        }
+
+        .pool-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .pool-pair {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .pool-icons {
+            display: flex;
+        }
+
+        .pool-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.8rem;
+            border: 2px solid #0d0d1a;
+        }
+
+        .pool-icon:not(:first-child) {
+            margin-left: -12px;
+        }
+
+        .pool-name {
+            font-weight: 600;
+        }
+
+        .pool-fee {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.125rem 0.5rem;
+            border-radius: 4px;
+            margin-top: 0.25rem;
+            width: fit-content;
+        }
+
+        .pool-stat {
+            text-align: right;
+        }
+
+        .pool-stat-label {
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            margin-bottom: 0.25rem;
+        }
+
+        .pool-stat-value {
+            font-weight: 600;
+        }
+
+        .pool-stat-value.positive { color: #00ff88; }
+
+        .pool-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .pool-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .pool-btn-add {
+            background: rgba(0, 212, 255, 0.15);
+            color: #00d4ff;
+        }
+
+        .pool-btn-add:hover {
+            background: rgba(0, 212, 255, 0.25);
+        }
+
+        .pool-btn-remove {
+            background: rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .pool-btn-remove:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* Your Positions */
+        .positions-section {
+            margin-bottom: 2rem;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .position-card {
+            background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 247, 0.1));
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .position-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .position-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .position-value {
+            text-align: right;
+        }
+
+        .position-value-label {
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .position-value-amount {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .position-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .position-detail {
+            text-align: center;
+        }
+
+        .position-detail-label {
+            font-size: 0.75rem;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .position-detail-value {
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            width: 100%;
+            max-width: 480px;
+            background: linear-gradient(135deg, #1a1a2e 0%, #0d1a2e 100%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 1.5rem;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.6);
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .input-group {
+            margin-bottom: 1rem;
+        }
+
+        .input-label {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .token-input {
+            display: flex;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 0.75rem 1rem;
+        }
+
+        .token-input input {
+            flex: 1;
+            background: none;
+            border: none;
+            color: #fff;
+            font-size: 1.25rem;
+            outline: none;
+        }
+
+        .token-input input::placeholder {
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .token-badge {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 0.375rem 0.75rem;
+            border-radius: 8px;
+        }
+
+        .token-badge-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .add-liquidity-btn {
+            width: 100%;
+            padding: 1rem;
+            margin-top: 1rem;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .add-liquidity-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -10px rgba(0, 212, 255, 0.5);
+        }
+
+        .add-liquidity-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            background: rgba(0, 255, 136, 0.15);
+            border: 1px solid rgba(0, 255, 136, 0.3);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            transform: translateY(150%);
+            transition: transform 0.3s;
+            z-index: 1001;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+        }
+
+        /* Pod Badge */
+        .pod-badge {
+            position: fixed;
+            bottom: 1rem;
+            left: 1rem;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-family: monospace;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .pool-card {
+                grid-template-columns: 1fr;
+                gap: 0.75rem;
+            }
+
+            .pool-stat {
+                text-align: left;
+                display: flex;
+                justify-content: space-between;
+            }
+
+            .nav-links {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-animation"></div>
+
+    <nav class="nav">
+        <a href="/" class="logo">
+            <div class="logo-icon">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                </svg>
+            </div>
+            <span>DefiSwap</span>
+        </a>
+
+        <div class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/exchange" class="nav-link">Swap</a>
+            <a href="/pool" class="nav-link active">Pool</a>
+            <a href="/charts" class="nav-link">Charts</a>
+        </div>
+
+        <button class="connect-btn" id="connectBtn" onclick="connectWallet()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="6" width="20" height="12" rx="2"/>
+                <path d="M22 10h-4a2 2 0 100 4h4"/>
+            </svg>
+            <span id="connectText">Connect Wallet</span>
+        </button>
+    </nav>
+
+    <main class="main">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <h1 class="page-title">Liquidity Pools</h1>
+                <p class="page-subtitle">Provide liquidity and earn trading fees</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="showCreatePool()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 8v8M8 12h8"/>
+                    </svg>
+                    Create Pool
+                </button>
+                <button class="btn btn-primary" onclick="showAddLiquidity()">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14"/>
+                    </svg>
+                    Add Liquidity
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-overview">
+            <div class="stat-card">
+                <div class="stat-label">Total Value Locked</div>
+                <div class="stat-value" id="tvl">$4.82B</div>
+                <div class="stat-change positive">+5.2% (24h)</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">24h Volume</div>
+                <div class="stat-value" id="volume">$1.24B</div>
+                <div class="stat-change positive">+12.4%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">24h Fees</div>
+                <div class="stat-value" id="fees">$3.72M</div>
+                <div class="stat-change positive">+8.7%</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Your Liquidity</div>
+                <div class="stat-value" id="userLiquidity">$0.00</div>
+            </div>
+        </div>
+
+        <!-- Your Positions -->
+        <div class="positions-section" id="positionsSection" style="display: none;">
+            <h2 class="section-title">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 12V8H6a2 2 0 01-2-2c0-1.1.9-2 2-2h12v4"/>
+                    <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"/>
+                    <path d="M18 12a2 2 0 100 4 2 2 0 000-4z"/>
+                </svg>
+                Your Positions
+            </h2>
+            <div id="positionsList"></div>
+        </div>
+
+        <!-- Pool Tabs -->
+        <div class="pool-tabs">
+            <button class="pool-tab active" onclick="setTab('all')">All Pools</button>
+            <button class="pool-tab" onclick="setTab('my')">My Pools</button>
+            <button class="pool-tab" onclick="setTab('incentivized')">Incentivized</button>
+        </div>
+
+        <!-- Pool List -->
+        <div class="pool-list" id="poolList"></div>
+    </main>
+
+    <!-- Add Liquidity Modal -->
+    <div class="modal" id="liquidityModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="modal-title">Add Liquidity</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 6L6 18M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Token 1</label>
+                <div class="token-input">
+                    <input type="text" placeholder="0.0" id="token1Amount">
+                    <div class="token-badge">
+                        <div class="token-badge-icon" style="background: #627eea;">E</div>
+                        <span>ETH</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label class="input-label">Token 2</label>
+                <div class="token-input">
+                    <input type="text" placeholder="0.0" id="token2Amount">
+                    <div class="token-badge">
+                        <div class="token-badge-icon" style="background: #2775ca;">U</div>
+                        <span>USDC</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="add-liquidity-btn" id="addLiquidityBtn" onclick="addLiquidity()">
+                Connect Wallet
+            </button>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00ff88" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
+            <path d="M22 4L12 14.01l-3-3"/>
+        </svg>
+        <span id="toastMessage">Success!</span>
+    </div>
+
+    <!-- Pod Badge -->
+    <div class="pod-badge">Pod: {{ hostname }}</div>
+
+    <script>
+        // Pool data
+        const pools = [
+            { token1: 'ETH', token2: 'USDC', color1: '#627eea', color2: '#2775ca', tvl: 842500000, volume: 124500000, apr: 24.5, fee: 0.3 },
+            { token1: 'ETH', token2: 'USDT', color1: '#627eea', color2: '#26a17b', tvl: 654200000, volume: 98700000, apr: 18.2, fee: 0.3 },
+            { token1: 'WBTC', token2: 'ETH', color1: '#f7931a', color2: '#627eea', tvl: 521800000, volume: 67400000, apr: 12.8, fee: 0.3 },
+            { token1: 'ETH', token2: 'DAI', color1: '#627eea', color2: '#f5ac37', tvl: 312400000, volume: 45200000, apr: 15.4, fee: 0.3 },
+            { token1: 'USDC', token2: 'USDT', color1: '#2775ca', color2: '#26a17b', tvl: 287600000, volume: 156800000, apr: 8.2, fee: 0.05 },
+            { token1: 'LINK', token2: 'ETH', color1: '#2a5ada', color2: '#627eea', tvl: 124500000, volume: 23400000, apr: 32.1, fee: 0.3 },
+            { token1: 'UNI', token2: 'ETH', color1: '#ff007a', color2: '#627eea', tvl: 98700000, volume: 18900000, apr: 28.7, fee: 0.3 },
+            { token1: 'AAVE', token2: 'ETH', color1: '#b6509e', color2: '#627eea', tvl: 76400000, volume: 12300000, apr: 21.3, fee: 0.3 },
+        ];
+
+        let userPositions = [];
+        let isConnected = false;
+
+        function init() {
+            renderPools();
+            startLiveUpdates();
+        }
+
+        function formatNumber(num) {
+            if (num >= 1e9) return '$' + (num / 1e9).toFixed(2) + 'B';
+            if (num >= 1e6) return '$' + (num / 1e6).toFixed(2) + 'M';
+            if (num >= 1e3) return '$' + (num / 1e3).toFixed(2) + 'K';
+            return '$' + num.toFixed(2);
+        }
+
+        function renderPools() {
+            const container = document.getElementById('poolList');
+            container.innerHTML = pools.map((pool, idx) => `
+                <div class="pool-card">
+                    <div class="pool-pair">
+                        <div class="pool-icons">
+                            <div class="pool-icon" style="background: ${pool.color1};">${pool.token1[0]}</div>
+                            <div class="pool-icon" style="background: ${pool.color2};">${pool.token2[0]}</div>
+                        </div>
+                        <div>
+                            <div class="pool-name">${pool.token1}/${pool.token2}</div>
+                            <div class="pool-fee">${pool.fee}% fee</div>
+                        </div>
+                    </div>
+                    <div class="pool-stat">
+                        <div class="pool-stat-label">TVL</div>
+                        <div class="pool-stat-value">${formatNumber(pool.tvl)}</div>
+                    </div>
+                    <div class="pool-stat">
+                        <div class="pool-stat-label">24h Volume</div>
+                        <div class="pool-stat-value">${formatNumber(pool.volume)}</div>
+                    </div>
+                    <div class="pool-stat">
+                        <div class="pool-stat-label">APR</div>
+                        <div class="pool-stat-value positive">${pool.apr.toFixed(1)}%</div>
+                    </div>
+                    <div class="pool-stat">
+                        <div class="pool-stat-label">24h Fees</div>
+                        <div class="pool-stat-value">${formatNumber(pool.volume * pool.fee / 100)}</div>
+                    </div>
+                    <div class="pool-actions">
+                        <button class="pool-btn pool-btn-add" onclick="addToPool(${idx})">Add</button>
+                        <button class="pool-btn pool-btn-remove" onclick="viewPool(${idx})">View</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderPositions() {
+            const section = document.getElementById('positionsSection');
+            const container = document.getElementById('positionsList');
+
+            if (userPositions.length === 0 || !isConnected) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            container.innerHTML = userPositions.map(pos => `
+                <div class="position-card">
+                    <div class="position-header">
+                        <div class="position-info">
+                            <div class="pool-icons">
+                                <div class="pool-icon" style="background: ${pos.color1};">${pos.token1[0]}</div>
+                                <div class="pool-icon" style="background: ${pos.color2};">${pos.token2[0]}</div>
+                            </div>
+                            <div>
+                                <div class="pool-name">${pos.token1}/${pos.token2}</div>
+                                <div class="pool-fee">${pos.fee}% fee tier</div>
+                            </div>
+                        </div>
+                        <div class="position-value">
+                            <div class="position-value-label">Position Value</div>
+                            <div class="position-value-amount">${formatNumber(pos.value)}</div>
+                        </div>
+                    </div>
+                    <div class="position-details">
+                        <div class="position-detail">
+                            <div class="position-detail-label">${pos.token1} Deposited</div>
+                            <div class="position-detail-value">${pos.amount1.toFixed(4)}</div>
+                        </div>
+                        <div class="position-detail">
+                            <div class="position-detail-label">${pos.token2} Deposited</div>
+                            <div class="position-detail-value">${pos.amount2.toFixed(2)}</div>
+                        </div>
+                        <div class="position-detail">
+                            <div class="position-detail-label">Fees Earned</div>
+                            <div class="position-detail-value" style="color: #00ff88;">${formatNumber(pos.fees)}</div>
+                        </div>
+                        <div class="position-detail">
+                            <div class="position-detail-label">APR</div>
+                            <div class="position-detail-value" style="color: #00ff88;">${pos.apr.toFixed(1)}%</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            // Update user liquidity
+            const totalLiquidity = userPositions.reduce((sum, p) => sum + p.value, 0);
+            document.getElementById('userLiquidity').textContent = formatNumber(totalLiquidity);
+        }
+
+        function connectWallet() {
+            const btn = document.getElementById('connectBtn');
+            const text = document.getElementById('connectText');
+            const addBtn = document.getElementById('addLiquidityBtn');
+
+            if (!isConnected) {
+                btn.classList.add('connected');
+                text.textContent = '0x7a...3f4d';
+                isConnected = true;
+                addBtn.textContent = 'Add Liquidity';
+
+                // Simulate user positions
+                userPositions = [
+                    { token1: 'ETH', token2: 'USDC', color1: '#627eea', color2: '#2775ca', value: 12450, amount1: 2.5, amount2: 4500, fees: 124.50, apr: 24.5, fee: 0.3 },
+                    { token1: 'WBTC', token2: 'ETH', color1: '#f7931a', color2: '#627eea', value: 8720, amount1: 0.12, amount2: 1.8, fees: 87.20, apr: 12.8, fee: 0.3 },
+                ];
+
+                renderPositions();
+                showToast('Wallet connected!');
+            } else {
+                btn.classList.remove('connected');
+                text.textContent = 'Connect Wallet';
+                isConnected = false;
+                addBtn.textContent = 'Connect Wallet';
+                userPositions = [];
+                document.getElementById('userLiquidity').textContent = '$0.00';
+                renderPositions();
+            }
+        }
+
+        function setTab(tab) {
+            document.querySelectorAll('.pool-tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+            // Filter logic would go here
+        }
+
+        function showAddLiquidity() {
+            document.getElementById('liquidityModal').classList.add('active');
+        }
+
+        function showCreatePool() {
+            showToast('Create Pool coming soon!');
+        }
+
+        function closeModal() {
+            document.getElementById('liquidityModal').classList.remove('active');
+        }
+
+        function addToPool(idx) {
+            if (!isConnected) {
+                showToast('Please connect wallet first');
+                return;
+            }
+            showAddLiquidity();
+        }
+
+        function viewPool(idx) {
+            showToast('Pool details coming soon!');
+        }
+
+        function addLiquidity() {
+            if (!isConnected) {
+                connectWallet();
+                return;
+            }
+
+            const amount1 = parseFloat(document.getElementById('token1Amount').value);
+            const amount2 = parseFloat(document.getElementById('token2Amount').value);
+
+            if (!amount1 || !amount2) {
+                showToast('Enter amounts');
+                return;
+            }
+
+            // Add position
+            userPositions.push({
+                token1: 'ETH', token2: 'USDC', color1: '#627eea', color2: '#2775ca',
+                value: amount1 * 3245 + amount2, amount1, amount2, fees: 0, apr: 24.5, fee: 0.3
+            });
+
+            renderPositions();
+            closeModal();
+            showToast(`Added ${amount1} ETH + ${amount2} USDC to pool`);
+
+            document.getElementById('token1Amount').value = '';
+            document.getElementById('token2Amount').value = '';
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMessage').textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+
+        function startLiveUpdates() {
+            setInterval(() => {
+                pools.forEach(pool => {
+                    pool.tvl *= 1 + (Math.random() - 0.5) * 0.001;
+                    pool.volume *= 1 + (Math.random() - 0.5) * 0.002;
+                });
+
+                userPositions.forEach(pos => {
+                    pos.value *= 1 + (Math.random() - 0.5) * 0.001;
+                    pos.fees += Math.random() * 0.1;
+                });
+
+                renderPools();
+                if (isConnected) renderPositions();
+            }, 5000);
+        }
+
+        document.getElementById('liquidityModal').addEventListener('click', (e) => {
+            if (e.target.id === 'liquidityModal') closeModal();
+        });
+
+        init();
+    </script>
+</body>
+</html>
